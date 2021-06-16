@@ -76,11 +76,11 @@ if (process.env.IS_DEVELOPMENT && !test) {
       {
         apps: [
           {
-            serverURL: config.serverURL,
-            graphQLServerURL: config.graphQLServerURL,
+            serverURL: "/parse",
             appId: config.appId,
             masterKey: config.masterKey,
             appName: "my-dev-parse-server",
+            graphQLServerURL: "http://localhost:1337/graphql"
           },
         ],
         users,
@@ -90,6 +90,7 @@ if (process.env.IS_DEVELOPMENT && !test) {
     )
   );
 }
+
 
 // Serve static assets from the /public folder
 app.use(express.static(path.join(__dirname, "/public")));
@@ -105,16 +106,11 @@ if (!test) {
   httpServer.listen(port, () => {
     console.log(`REST API Running on http://localhost:${port}/parse`);
   });
-  if (process.env.IS_DEVELOPMENT) {
-    const parseGraphQLServer = new ParseGraphQLServer(api, {
-      graphQLPath: "/graphql",
-    });
-    parseGraphQLServer.applyGraphQL(app);
-    console.log(
-      `Parse Dashboard Running on http://localhost:${port}/dashboard. 
- **From Dashboard you can access GraphQL playground, go to Core > API Console > GraphQL Console`
-    );
-  }
+
+  const parseGraphQLServer = new ParseGraphQLServer(api, {
+    graphQLPath: "/graphql",
+  });
+  parseGraphQLServer.applyGraphQL(app);
 
   // This will enable the Live Query real-time server
   ParseServer.createLiveQueryServer(httpServer);
