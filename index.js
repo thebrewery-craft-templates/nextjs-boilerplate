@@ -82,6 +82,7 @@ if (config.isDev && !test) {
             graphQLServerURL: config.graphQLServerURL,
             masterKey: config.masterKey,
             appName: "my-dev-parse-server",
+            graphQLServerURL: "http://localhost:1337/graphql"
           },
         ],
         users,
@@ -91,6 +92,7 @@ if (config.isDev && !test) {
     )
   );
 }
+
 
 // Serve static assets from the /public folder
 app.use(express.static(path.join(__dirname, "/public")));
