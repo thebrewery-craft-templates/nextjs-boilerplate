@@ -13,7 +13,8 @@ const args = process.argv || [];
 const test = args.some((arg) => arg.includes("jasmine"));
 
 const config = require("./parse-config");
-const databaseUri = process.env.DATABASE_URI;
+const { ConsoleReporter } = require("jasmine");
+const databaseUri = process.env.DATABASE_URI || config.databaseURI;
 
 if (!databaseUri) {
   console.log("DATABASE_URI not specified, falling back to localhost.");
@@ -62,7 +63,7 @@ if (process.env.IS_DEVELOPMENT === false && !test) {
 
 app.use(cors());
 
-if (process.env.IS_DEVELOPMENT && !test) {
+if (config.isDev && !test) {
   const users = [
     {
       user: "admin",
@@ -77,8 +78,8 @@ if (process.env.IS_DEVELOPMENT && !test) {
         apps: [
           {
             serverURL: config.serverURL,
-            graphQLServerURL: config.graphQLServerURL,
             appId: config.appId,
+            graphQLServerURL: config.graphQLServerURL,
             masterKey: config.masterKey,
             appName: "my-dev-parse-server",
           },
@@ -105,19 +106,22 @@ if (!test) {
   httpServer.listen(port, () => {
     console.log(`REST API Running on http://localhost:${port}/parse`);
   });
-  if (process.env.IS_DEVELOPMENT) {
-    const parseGraphQLServer = new ParseGraphQLServer(api, {
-      graphQLPath: "/graphql",
-    });
-    parseGraphQLServer.applyGraphQL(app);
-    console.log(
-      `Parse Dashboard Running on http://localhost:${port}/dashboard. 
- **From Dashboard you can access GraphQL playground, go to Core > API Console > GraphQL Console`
-    );
-  }
+
+  const parseGraphQLServer = new ParseGraphQLServer(api, {
+    graphQLPath: "/graphql",
+  });
+
+  parseGraphQLServer.applyGraphQL(app); // Mounts the GraphQL API
 
   // This will enable the Live Query real-time server
   ParseServer.createLiveQueryServer(httpServer);
+}
+
+if (config.isDev && !test) {
+  console.log(
+    `Parse Dashboard Running on http://localhost:${port}/dashboard. 
+ **From Dashboard you can access GraphQL playground, go to Core > API Console > GraphQL Console`
+  );
 }
 
 module.exports = {
